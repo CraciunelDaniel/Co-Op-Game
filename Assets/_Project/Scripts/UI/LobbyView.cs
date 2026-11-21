@@ -1,0 +1,97 @@
+using System.Text;
+using Scripts.Core;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using VContainer;
+
+namespace Scripts.UI
+{
+    public class LobbyView : MonoBehaviour
+    {
+        [SerializeField] private GameObject _connectionPanel;
+        [SerializeField] private GameObject _lobbyPanel;
+        [SerializeField] private TMP_Text _playersListText;
+        [SerializeField] private Button _startGameButton;
+        [SerializeField] private Button _leaveButton;
+
+        private INetworkSessionService _sessionService;
+        private ISessionStateService _sessionState;
+
+        [Inject]
+        public void Construct(INetworkSessionService sessionService, ISessionStateService sessionState)
+        {
+            _sessionService = sessionService;
+            _sessionState = sessionState;
+        }
+
+        private void Start()
+        {
+            _startGameButton.onClick.AddListener(OnStartGameClicked);
+            _leaveButton.onClick.AddListener(OnLeaveClicked);
+
+            _sessionService.OnConnected += HandleConnected;
+            _sessionService.OnDisconnected += HandleDisconnected;
+            _sessionState.OnPlayersChanged += RefreshPlayersList;
+
+            ShowLobby(false);
+        }
+
+        private void OnDestroy()
+        {
+            if (_sessionService != null)
+            {
+                _sessionService.OnConnected -= HandleConnected;
+                _sessionService.OnDisconnected -= HandleDisconnected;
+            }
+
+            if (_sessionState != null)
+            {
+                _sessionState.OnPlayersChanged -= RefreshPlayersList;
+            }
+        }
+
+        private void HandleConnected()
+        {
+            ShowLobby(true);
+            _startGameButton.gameObject.SetActive(_sessionService.IsHost);
+            RefreshPlayersList();
+        }
+
+        private void HandleDisconnected(string _)
+        {
+            ShowLobby(false);
+        }
+
+        private void RefreshPlayersList()
+        {
+            var sb = new StringBuilder();
+            foreach (var player in _sessionState.Players)
+            {
+                string tag = player.IsHost ? " [Host]" : "";
+                sb.AppendLine($"• {player.Name}{tag}");
+            }
+          
+            _playersListText.text = sb.ToString();
+        }
+
+        private void OnStartGameClicked()
+        {
+            _startGameButton.interactable = false;
+            _sessionState.StartGame();
+        }
+
+        private void OnLeaveClicked()
+        {
+            _sessionService.Shutdown();
+            ShowLobby(false);
+        }
+
+        private void ShowLobby(bool visible)
+        {
+            _connectionPanel.SetActive(!visible);
+            _lobbyPanel.SetActive(visible);
+            if (visible) _startGameButton.interactable = true;
+        }
+    }
+}

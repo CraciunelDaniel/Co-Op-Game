@@ -78,6 +78,7 @@ namespace Bootstrap
 			_networkManager.NetworkConfig.NetworkTransport = _facepunchTransport;
 			_steamLifecycleService.Attach(_networkManager);
 			
+			builder.RegisterEntryPoint<SteamCallbackPump>(Lifetime.Singleton);
 			builder.Register<ITransportConfigurator, SteamTransportConfigurator>(Lifetime.Singleton);
 			builder.Register<IPlayerIdentityProvider, SteamIdentityProvider>(Lifetime.Singleton);
 			builder.Register<ILobbyService, SteamLobbyService>(Lifetime.Singleton);

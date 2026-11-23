@@ -488,6 +488,17 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""TogglePlayerList"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cef7a05b-48c6-40eb-8a0c-25a586d849ad"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TogglePlayerList"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }

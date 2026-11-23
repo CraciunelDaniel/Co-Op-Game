@@ -9,7 +9,6 @@ namespace Networking
 {
 	public class NetworkSessionState : NetworkBehaviour
 	{
-		public static NetworkSessionState Instance { get; private set; }
 
 		private readonly NetworkList<NetworkPlayerData> _players = new();
 		private readonly NetworkVariable<bool> _isGameStarted=new (false);
@@ -17,6 +16,7 @@ namespace Networking
 		private readonly HashSet<ulong> _pendingSceneLoadClients = new();
 		private bool _isWaitingForSceneLoad;
 		private const float PING_UPDATE_INTERVAL = 1f;
+		private const float PING_CHANGE_THRESHOLD_MS =5f;
 		private float _pingTimer;
 		
 		private ConnectionApprovalHandler _approvalHandler;
@@ -46,7 +46,6 @@ namespace Networking
 
 		public override void OnNetworkSpawn()
 		{
-			Instance = this;
 			DontDestroyOnLoad(gameObject);
 
 			_players.OnListChanged += HandlePlayersListChanged ;
@@ -80,7 +79,6 @@ namespace Networking
 					NetworkManager.SceneManager.OnLoadComplete -= HandleClientSceneLoadComplete;
 				}
 			}
-			if(Instance==this) Instance = null;
 		}
 		
 
@@ -195,7 +193,7 @@ namespace Networking
 				ushort rtt = data.ClientId == NetworkManager.ServerClientId
 					? (ushort) 0
 					: (ushort) Mathf.Clamp((int) transport.GetCurrentRtt(data.ClientId), 0, 9999);
-				if (data.PingMs != rtt)
+				if (Mathf.Abs(data.PingMs-rtt)>=PING_CHANGE_THRESHOLD_MS)
 				{
 					data.PingMs = rtt;
 					_players[i] = data;

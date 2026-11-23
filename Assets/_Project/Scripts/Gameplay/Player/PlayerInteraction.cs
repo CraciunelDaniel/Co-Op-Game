@@ -11,25 +11,26 @@ namespace Gameplay.Player
 		[SerializeField] private Transform _cameraTransform;
 		[SerializeField] private Transform _holdPoint;
 
+		private readonly NetworkVariable<NetworkObjectReference> _heldItemRef = new();
+
 		private IPlayerInputService _inputService;
 		private InteractionConfig _config;
 		private NetworkPhysicsItem _itemPrefab;
-
-		private readonly NetworkVariable<NetworkObjectReference> _heldItemRef=new();
 		private NetworkPhysicsItem _cachedHeldItem;
 		private IAchievementService _achievementService;
-		private bool _throwAchievementUnlocked;
 
-		public void Initialize(IPlayerInputService inputService, InteractionConfig interactionConfig, NetworkPhysicsItem itemPrefab,IAchievementService achievementService)
+		private const float MAX_RELEASE_OFFSET = 4f;
+
+		public void Initialize(IPlayerInputService inputService, InteractionConfig interactionConfig, NetworkPhysicsItem itemPrefab, IAchievementService achievementService)
 		{
 			_inputService = inputService;
 			_config = interactionConfig;
 			_itemPrefab = itemPrefab;
 			_achievementService = achievementService;
-			
+
 			bool isOwner = IsOwner;
 			enabled = isOwner;
-			
+
 			if (isOwner && _inputService != null)
 			{
 				_inputService.OnSpawnItemPressed += HandleSpawnInput;
@@ -44,7 +45,6 @@ namespace Gameplay.Player
 			_heldItemRef.OnValueChanged += HandleHeldItemChanged;
 			ResolveHeldItem(_heldItemRef.Value);
 		}
-		
 
 		public override void OnNetworkDespawn()
 		{
@@ -79,7 +79,8 @@ namespace Gameplay.Player
 		{
 			if (_cachedHeldItem != null)
 			{
-				RequestDropItemRpc();
+				Transform t = _cachedHeldItem.transform;
+				RequestDropItemRpc(t.position,t.rotation);
 				return;
 			}
 
@@ -95,14 +96,8 @@ namespace Gameplay.Player
 		private void HandleThrowInput()
 		{
 			if (_cachedHeldItem == null) return;
-			RequestThrowItemRpc(_cameraTransform.forward);
-
-			if (!_throwAchievementUnlocked)
-			{
-				_throwAchievementUnlocked = true;
-				_achievementService?.Unlock("ACH_WIN_ONE_GAME");
-			}
-			
+			Transform t = _cachedHeldItem.transform;
+			RequestThrowItemRpc(t.position,t.rotation,_cameraTransform.forward);
 		}
 
 		private void HandleDeleteInput()
@@ -146,22 +141,26 @@ namespace Gameplay.Player
 		}
 
 		[Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-		private void RequestDropItemRpc()
+		private void RequestDropItemRpc(Vector3 releasePos, Quaternion releaseRot)
 		{
 			if (!TryGetServerHeldItem(out var item)) return;
 
-			item.ServerDrop();
+			SanitizeReleasePose(item,ref releasePos,ref releaseRot);
+			item.ServerDrop(releasePos, releaseRot);
 			_heldItemRef.Value = default;
 		}
 
 		[Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-		private void RequestThrowItemRpc(Vector3 direction)
+		private void RequestThrowItemRpc(Vector3 releasePos,Quaternion releaseRot,Vector3 direction)
 		{
 			if (!TryGetServerHeldItem(out var item)) return;
 			if (direction.sqrMagnitude < 0.001f) direction = transform.forward;
 
-			item.ServerThrow(direction.normalized * _config.ThrowForce);
+			SanitizeReleasePose(item, ref releasePos,ref releaseRot);
+			item.ServerThrow(releasePos,releaseRot,direction.normalized * _config.ThrowForce);
 			_heldItemRef.Value = default;
+			
+			ThrowConfirmedRpc();
 		}
 
 		[Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
@@ -173,6 +172,21 @@ namespace Gameplay.Player
 			item.ServerDelete();
 		}
 
+		[Rpc(SendTo.Owner)]
+		private void ThrowConfirmedRpc()
+		{
+			_achievementService?.IncrementStat(StatIds.ItemsThrown);
+			_achievementService?.Unlock(StatIds.FirstThrowAchievement);
+		}
+
+		private void SanitizeReleasePose(NetworkPhysicsItem item, ref Vector3 pos, ref Quaternion rot)
+		{
+			if ((pos - transform.position).sqrMagnitude > MAX_RELEASE_OFFSET * MAX_RELEASE_OFFSET)
+			{
+				pos=item.transform.position;
+				rot=item.transform.rotation;
+			}
+		}
 		private bool TryGetServerHeldItem(out NetworkPhysicsItem item)
 		{
 			item = null;

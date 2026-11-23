@@ -46,9 +46,7 @@ namespace Scripts.Networking
 
 		private void HandleServerStarted()
 		{
-			var prefabInstance = UnityEngine.Object.Instantiate(_sessionStatePrefab.gameObject);
-
-			var instance = prefabInstance.GetComponent<NetworkSessionState>();
+			var instance = UnityEngine.Object.Instantiate(_sessionStatePrefab);
 			instance.InitializeServerDependencies(_approvalHandler,_config);
 			instance.NetworkObject.Spawn(destroyWithScene:false);
 			BindState(instance);

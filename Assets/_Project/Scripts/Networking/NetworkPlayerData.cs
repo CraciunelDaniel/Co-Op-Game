@@ -7,7 +7,7 @@ namespace Networking
 	public struct NetworkPlayerData : INetworkSerializable, IEquatable<NetworkPlayerData>
 	{
 		public ulong ClientId;
-		public FixedString64Bytes Name;
+		public FixedString32Bytes Name;
 		public ushort PingMs;
 
 		public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter

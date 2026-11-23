@@ -8,60 +8,55 @@ namespace Gameplay.Player
 	{
 		[SerializeField] private Renderer _bodyRenderer;
 
-		private readonly NetworkVariable<Color> _networkColor = new();
-		
+		private readonly NetworkVariable<byte> _colorIndex = new();
+
 		private int _currentColorIndex = -1;
 		private PlayerConfig _config;
 
 		public void Initialize(PlayerConfig config)
 		{
 			_config = config;
+			ApplyColor(_colorIndex.Value);
 		}
 
 		public override void OnNetworkSpawn()
 		{
-			_networkColor.OnValueChanged += HandleColorChanged;
-			ApplyColor(_networkColor.Value);
+			_colorIndex.OnValueChanged += HandleColorChanged;
+			ApplyColor(_colorIndex.Value);
 		}
 
 		public override void OnNetworkDespawn()
 		{
-			_networkColor.OnValueChanged -= HandleColorChanged;
+			_colorIndex.OnValueChanged -= HandleColorChanged;
 		}
 
 		public void RequestNextRandomColor()
 		{
-			if(!IsOwner)return;
+			if (!IsOwner) return;
 			RequestRandomColorRpc();
 		}
+
 		[Rpc(SendTo.Server)]
 		private void RequestRandomColorRpc()
 		{
-			if (_config == null || _config.ColorPalette.Length == 0) return;
+			int count = _config.ColorPalette.Length;
+			if (count <= 1) return;
 
-			if (_config.ColorPalette.Length == 1)
-			{
-				_currentColorIndex = 0;
-				_networkColor.Value = _config.ColorPalette[0];
-				return;
-			}
-
-			int nextIndex = Random.Range(0, _config.ColorPalette.Length - 1);
-			if (nextIndex >= _currentColorIndex) nextIndex++;
-
-			_currentColorIndex = nextIndex;
-			_networkColor.Value = _config.ColorPalette[_currentColorIndex];
-		}
-		private void HandleColorChanged(Color previousColor, Color newColor)
-		{
-			ApplyColor(newColor);
+			int next = Random.Range(0, count - 1);
+			if (next >= _colorIndex.Value) next++;
+			_colorIndex.Value = (byte) next;
 		}
 
-		private void ApplyColor(Color color)
+		private void HandleColorChanged(byte _, byte index)
 		{
-			if(_bodyRenderer==null)return;
-			
-			_bodyRenderer.material.color = color;
+			ApplyColor(index);
+		}
+
+		private void ApplyColor(byte index)
+		{
+			if (_bodyRenderer == null || _config == null || index >= _config.ColorPalette.Length) return;
+
+			_bodyRenderer.material.color = _config.ColorPalette[index];
 		}
 	}
 }

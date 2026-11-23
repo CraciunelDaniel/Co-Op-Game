@@ -48,7 +48,7 @@ namespace UI
 			_sessionService.OnConnected += HandleConnected;
 			_sessionService.OnDisconnected += HandleDisconnected;
 
-			if (string.IsNullOrEmpty(_sessionService.LastDisconnectReason))
+			if (!string.IsNullOrEmpty(_sessionService.LastDisconnectReason))
 			{
 				_statusText.text = _sessionService.LastDisconnectReason;
 			}

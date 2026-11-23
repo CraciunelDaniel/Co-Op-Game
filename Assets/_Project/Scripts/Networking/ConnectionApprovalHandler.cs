@@ -41,6 +41,7 @@ namespace Networking
 			if (payload.BuildVersion != Application.version)
 			{
 				Deny(response, $"Version mismatch. Server: {Application.version}, Client: {payload.BuildVersion}");
+				return;
 			}
 
 			if (_connectedPlayers.Count >= _config.MaxPlayers)

@@ -16,7 +16,7 @@ namespace Gameplay.Player
 		[SerializeField] private PlayerMotor _motor;
 		[SerializeField] private PlayerColorSync _colorSync;
 		[SerializeField] private PlayerInteraction _playerInteraction;
-		
+
 		private IPlayerInputService _inputService;
 		private PlayerConfig _config;
 
@@ -28,12 +28,16 @@ namespace Gameplay.Player
 		}
 
 		[Inject]
-		public void Construct(IPlayerInputService inputService, PlayerConfig config,InteractionConfig interactionConfig,NetworkPhysicsItem itemPrefab)
+		public void Construct(IPlayerInputService inputService,
+			PlayerConfig config,
+			InteractionConfig interactionConfig,
+			NetworkPhysicsItem itemPrefab,
+			IAchievementService achievementService)
 		{
 			_inputService = inputService;
 			_config = config;
 			_colorSync.Initialize(config);
-			_playerInteraction.Initialize(inputService,interactionConfig,itemPrefab);
+			_playerInteraction.Initialize(inputService, interactionConfig, itemPrefab, achievementService);
 		}
 
 		public override void OnNetworkSpawn()
@@ -46,10 +50,10 @@ namespace Gameplay.Player
 			}
 
 			bool isOwner = IsOwner;
-			if(_playerCamera!=null) _playerCamera.enabled = isOwner;
-			if(_audioListener!=null) _audioListener.enabled = isOwner;
-			
-			_motor.Initialize(_config,isOwner,IsServer);
+			if (_playerCamera != null) _playerCamera.enabled = isOwner;
+			if (_audioListener != null) _audioListener.enabled = isOwner;
+
+			_motor.Initialize(_config, isOwner, IsServer);
 
 			if (isOwner)
 			{
@@ -69,10 +73,10 @@ namespace Gameplay.Player
 
 		private void Update()
 		{
-			if(!IsOwner || _inputService == null)return;
-			
+			if (!IsOwner || _inputService == null) return;
+
 			_motor.ApplyLock(_inputService.LookInput);
-			_motor.ApplyMove(_inputService.MoveInput,Time.deltaTime);
+			_motor.ApplyMove(_inputService.MoveInput, Time.deltaTime);
 		}
 
 		private void HandleChangeColorPressed()

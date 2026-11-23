@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Threading.Tasks;
 using Core;
 using Unity.Netcode;
 using UnityEngine;
@@ -13,6 +14,7 @@ namespace Networking
 		private readonly IPlayerIdentityProvider _identityProvider;
 		private readonly ConnectionApprovalHandler _approvalHandler;
 		private readonly SessionConfig _config;
+		private readonly ILobbyService _lobbyService;
 		
 		private bool _isConnected;
 		
@@ -26,16 +28,20 @@ namespace Networking
 			ITransportConfigurator transportConfigurator,
 			IPlayerIdentityProvider identityProvider,
 			ConnectionApprovalHandler approvalHandler,
-			SessionConfig config)
+			SessionConfig config,
+			ILobbyService lobbyService)
 		{
 			_networkManager = networkManager;
 			_transportConfigurator = transportConfigurator;
 			_identityProvider = identityProvider;
 			_approvalHandler = approvalHandler;
 			_config=config;
+			_lobbyService=lobbyService;
 			
 			_networkManager.OnClientConnectedCallback += HandleClientConnected;
 			_networkManager.OnClientDisconnectCallback += HandleClientDisconnected;
+
+			_lobbyService.OnJoinRequested += HandleLobbyJoinRequested;
 		}
 		public void StartHost(ushort port)
 		{
@@ -52,6 +58,16 @@ namespace Networking
 				_isConnected = false;
 				OnDisconnected?.Invoke("Failed to start host.");
 			}
+
+			if (_lobbyService.IsSupported)
+			{
+				_=CreateLobbyForHostAsync();
+			}
+		}
+
+		private async Task CreateLobbyForHostAsync()
+		{
+			await _lobbyService.CreateLobbyAsync(_config.MaxPlayers);
 		}
 		public void StartClient(string address, ushort port)
 		{
@@ -76,6 +92,7 @@ namespace Networking
 			{
 				_networkManager.Shutdown();
 			}
+			_lobbyService.LeaveLobby();
 			ReturnToMenu();
 		}
 
@@ -91,6 +108,14 @@ namespace Networking
 			_networkManager.NetworkConfig.ConnectionData=Encoding.UTF8.GetBytes(json);
 		}
 
+		private void HandleLobbyJoinRequested(string hostSteamId)
+		{
+			if (_networkManager.IsListening)
+			{
+				_networkManager.Shutdown();
+			}
+			StartClient(hostSteamId,0);
+		}
 		private void HandleClientConnected(ulong clientId)
 		{
 			if (clientId == _networkManager.LocalClientId)
@@ -116,8 +141,10 @@ namespace Networking
 				}
 				_isConnected = false;
 				LastDisconnectReason = reason;
+				_lobbyService.LeaveLobby();
 				OnDisconnected?.Invoke(reason);
-
+				
+				
 				ReturnToMenu();
 			}
 		}
@@ -138,6 +165,7 @@ namespace Networking
 			{
 				_networkManager.OnClientConnectedCallback -= HandleClientConnected;
 				_networkManager.OnClientDisconnectCallback -= HandleClientDisconnected;
+				_lobbyService.OnJoinRequested -= HandleLobbyJoinRequested;
 				_networkManager.ConnectionApprovalCallback = null;
 			}
 		}

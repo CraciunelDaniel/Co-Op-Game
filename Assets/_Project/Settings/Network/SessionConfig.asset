@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb7cc373a36f31649bd0083b61870535, type: 3}
   m_Name: SessionConfig
   m_EditorClassIdentifier: Game.Core::Scripts.Core.SessionConfig
-  <DefaultTransport>k__BackingField: 0
+  <DefaultTransport>k__BackingField: 1
   <MaxPlayers>k__BackingField: 4
   <DefaultIp>k__BackingField: 127.0.0.1
   <DefaultPort>k__BackingField: 7777

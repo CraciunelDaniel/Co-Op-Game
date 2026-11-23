@@ -235,6 +235,8 @@ MonoBehaviour:
   _networkManager: {fileID: 1333732121}
   _sessionConfig: {fileID: 11400000, guid: e981b5b406099ae44b867bac8005e474, type: 2}
   _sessionStatePrefab: {fileID: 8864481994819036718, guid: 10afaa5ac45a08444aa67cf688cb2a28, type: 3}
+  _unityTransport: {fileID: 1333732124}
+  _facepunchTransport: {fileID: 1333732123}
 --- !u!4 &233033580
 Transform:
   m_ObjectHideFlags: 0
@@ -514,6 +516,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1333732122}
   - component: {fileID: 1333732121}
+  - component: {fileID: 1333732124}
+  - component: {fileID: 1333732123}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -579,6 +583,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1333732123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333732120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44dd247a00edbfa44b77868d755af6ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Facepunch Transport for Netcode for GameObjects::Netcode.Transports.Facepunch.FacepunchTransport
+  steamAppId: 480
+  targetSteamId: 0
+  userSteamId: 0
+--- !u!114 &1333732124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333732120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6960e84d07fb87f47956e7a81d71c4e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Transports.UTP.UnityTransport
+  m_ProtocolType: 0
+  m_UseWebSockets: 0
+  m_UseEncryption: 0
+  m_MaxPacketQueueSize: 128
+  m_MaxPayloadSize: 6144
+  m_HeartbeatTimeoutMS: 500
+  m_ConnectTimeoutMS: 1000
+  m_MaxConnectAttempts: 60
+  m_DisconnectTimeoutMS: 30000
+  ConnectionData:
+    Address: 127.0.0.1
+    Port: 7777
+    WebSocketPath: /
+    ServerListenAddress: 127.0.0.1
+    ClientBindPort: 0
+  DebugSimulator:
+    PacketDelayMS: 0
+    PacketJitterMS: 0
+    PacketDropRate: 0
 --- !u!1 &1526131647
 GameObject:
   m_ObjectHideFlags: 0

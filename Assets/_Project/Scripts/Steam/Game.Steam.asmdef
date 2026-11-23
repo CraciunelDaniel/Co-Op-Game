@@ -1,0 +1,19 @@
+{
+    "name": "Game.Steam",
+    "rootNamespace": "",
+    "references": [
+        "GUID:fed43a45d6d636d41889846f676044e1",
+        "GUID:1491147abca9d7d4bb7105af628b223e",
+        "GUID:b0214a6008ed146ff8f122a6a9c2f6cc",
+        "GUID:2aa43b0c797e0d444a7e82e75d4f2082"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

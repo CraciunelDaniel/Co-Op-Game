@@ -17,13 +17,15 @@ namespace Gameplay.Player
 
 		private readonly NetworkVariable<NetworkObjectReference> _heldItemRef=new();
 		private NetworkPhysicsItem _cachedHeldItem;
-		
+		private IAchievementService _achievementService;
+		private bool _throwAchievementUnlocked;
 
-		public void Initialize(IPlayerInputService inputService, InteractionConfig interactionConfig, NetworkPhysicsItem itemPrefab)
+		public void Initialize(IPlayerInputService inputService, InteractionConfig interactionConfig, NetworkPhysicsItem itemPrefab,IAchievementService achievementService)
 		{
 			_inputService = inputService;
 			_config = interactionConfig;
 			_itemPrefab = itemPrefab;
+			_achievementService = achievementService;
 			
 			bool isOwner = IsOwner;
 			enabled = isOwner;
@@ -94,6 +96,13 @@ namespace Gameplay.Player
 		{
 			if (_cachedHeldItem == null) return;
 			RequestThrowItemRpc(_cameraTransform.forward);
+
+			if (!_throwAchievementUnlocked)
+			{
+				_throwAchievementUnlocked = true;
+				_achievementService?.Unlock("ACH_WIN_ONE_GAME");
+			}
+			
 		}
 
 		private void HandleDeleteInput()

@@ -15,6 +15,7 @@ namespace Networking
 		private readonly ConnectionApprovalHandler _approvalHandler;
 		private readonly SessionConfig _config;
 		private readonly ILobbyService _lobbyService;
+		private readonly IAchievementService _achievementService;
 		
 		private bool _isConnected;
 		
@@ -29,7 +30,8 @@ namespace Networking
 			IPlayerIdentityProvider identityProvider,
 			ConnectionApprovalHandler approvalHandler,
 			SessionConfig config,
-			ILobbyService lobbyService)
+			ILobbyService lobbyService,
+			IAchievementService achievementService)
 		{
 			_networkManager = networkManager;
 			_transportConfigurator = transportConfigurator;
@@ -37,6 +39,7 @@ namespace Networking
 			_approvalHandler = approvalHandler;
 			_config=config;
 			_lobbyService=lobbyService;
+			_achievementService = achievementService;
 			
 			_networkManager.OnClientConnectedCallback += HandleClientConnected;
 			_networkManager.OnClientDisconnectCallback += HandleClientDisconnected;
@@ -57,6 +60,7 @@ namespace Networking
 			{
 				_isConnected = false;
 				OnDisconnected?.Invoke("Failed to start host.");
+				return;
 			}
 
 			if (_lobbyService.IsSupported)
@@ -67,7 +71,7 @@ namespace Networking
 
 		private async Task CreateLobbyForHostAsync()
 		{
-			await _lobbyService.CreateLobbyAsync(_config.MaxPlayers);
+			await _lobbyService.CreateLobbyAsync(new LobbySettings($"{_identityProvider.DisplayName}'s lobby",_config.MaxPlayers,LobbyVisibility.FriendsOnly));
 		}
 		public void StartClient(string address, ushort port)
 		{
@@ -88,6 +92,10 @@ namespace Networking
 		{
 			_isConnected = false;
 			_approvalHandler.Clear();
+			if (IsHost)
+			{
+				_achievementService.StoreStats();
+			}
 			if (_networkManager.IsListening)
 			{
 				_networkManager.Shutdown();

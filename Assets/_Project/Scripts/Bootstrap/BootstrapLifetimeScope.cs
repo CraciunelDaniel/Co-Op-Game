@@ -22,10 +22,18 @@ namespace Bootstrap
 		[SerializeField] private UnityTransport _unityTransport;
 		[SerializeField] private FacepunchTransport _facepunchTransport;
 
+		private readonly SteamLifecycleService _steamLifecycleService = new();
+
 		protected override void Awake()
 		{
 			DontDestroyOnLoad(gameObject);
 			base.Awake();
+		}
+
+		protected override void OnDestroy()
+		{
+			base.OnDestroy();
+			_steamLifecycleService.Dispose();
 		}
 
 		protected override void Configure(IContainerBuilder builder)
@@ -34,8 +42,24 @@ namespace Bootstrap
 			builder.RegisterInstance(_sessionConfig);
 			builder.RegisterInstance(_sessionStatePrefab);
 
+			ConfigureTransport(builder);
 
+			builder.Register<ConnectionApprovalHandler>(Lifetime.Singleton);
+			builder.Register<INetworkSessionService, NetworkSessionService>(Lifetime.Singleton);
+			builder.Register<ISessionStateService, SessionStateService>(Lifetime.Singleton);
+			builder.RegisterEntryPoint<RichPresenceController>(Lifetime.Singleton);
+			builder.RegisterEntryPoint<StatsFlushController>(Lifetime.Singleton);
+
+			builder.RegisterBuildCallback(_ => { SceneManager.LoadScene(_sessionConfig.MenuSceneName); });
+		}
+
+		private void ConfigureTransport(IContainerBuilder builder)
+		{
 			var transportType = ResolveTransportType(_sessionConfig.DefaultTransport);
+			if (transportType == TransportType.Steam && !_steamLifecycleService.TryInitialize())
+			{
+				transportType = TransportType.Utp;
+			}
 
 			switch (transportType)
 			{
@@ -47,26 +71,18 @@ namespace Bootstrap
 					ConfigureUtp(builder);
 					break;
 			}
-
-			builder.Register<ConnectionApprovalHandler>(Lifetime.Singleton);
-			builder.Register<INetworkSessionService, NetworkSessionService>(Lifetime.Singleton);
-			builder.Register<ISessionStateService, SessionStateService>(Lifetime.Singleton);
-			builder.RegisterEntryPoint<RichPresenceController>(Lifetime.Singleton);
-			
-			builder.RegisterBuildCallback(_ => { SceneManager.LoadScene(_sessionConfig.MenuSceneName); });
 		}
 
 		private void ConfigureSteam(IContainerBuilder builder)
 		{
 			_networkManager.NetworkConfig.NetworkTransport = _facepunchTransport;
-
-			builder.RegisterEntryPoint<SteamLifecycleService>(Lifetime.Singleton);
+			_steamLifecycleService.Attach(_networkManager);
+			
 			builder.Register<ITransportConfigurator, SteamTransportConfigurator>(Lifetime.Singleton);
 			builder.Register<IPlayerIdentityProvider, SteamIdentityProvider>(Lifetime.Singleton);
 			builder.Register<ILobbyService, SteamLobbyService>(Lifetime.Singleton);
 			builder.Register<IRichPresenceService, SteamRichPresenceService>(Lifetime.Singleton);
 			builder.Register<IAchievementService, SteamAchievementService>(Lifetime.Singleton);
-			
 		}
 
 		private void ConfigureUtp(IContainerBuilder builder)
@@ -77,7 +93,7 @@ namespace Bootstrap
 			builder.Register<IPlayerIdentityProvider, LocalPlayerIdentityProvider>(Lifetime.Singleton);
 			builder.Register<ILobbyService, NullLobbyService>(Lifetime.Singleton);
 			builder.Register<IRichPresenceService, NullRichPresenceService>(Lifetime.Singleton);
-			builder.Register<IAchievementService, NullAchievementService>(Lifetime.Singleton);
+			builder.Register<IAchievementService, LoggingAchievementService>(Lifetime.Singleton);
 		}
 
 		private static TransportType ResolveTransportType(TransportType fallback)

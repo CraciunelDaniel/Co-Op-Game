@@ -1,6 +1,6 @@
 using System;
 
-namespace Scripts.Core
+namespace Core
 {
 	[Serializable]
 	public struct ConnectionPayload

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Scripts.Core
+namespace Core
 {
 	public interface IPlayerInputService 
 	{
@@ -13,6 +13,7 @@ namespace Scripts.Core
 		event Action OnGrabOrDropPressed;
 		event Action OnThrowPressed;
 		event Action OnDeleteItemPressed;
+		event Action OnTogglePlayerListPressed;
 
 		void EnableGameplayInput();
 		void DisableGameplayInput();

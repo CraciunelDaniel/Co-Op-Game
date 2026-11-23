@@ -1,11 +1,11 @@
 using System.Text;
-using Scripts.Core;
+using Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace Scripts.UI
+namespace UI
 {
     public class LobbyView : MonoBehaviour
     {

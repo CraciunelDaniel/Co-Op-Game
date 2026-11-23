@@ -1,11 +1,11 @@
 using System;
-using Scripts.Core;
+using Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Gameplay.Input
 {
-	public class PlayerInputService : IPlayerInputService, GameInputActions.IPlayerActions,IDisposable
+	public class PlayerInputService : IPlayerInputService, GameInputActions.IPlayerActions,GameInputActions.IUIActions,IDisposable
 	{
 		private GameInputActions _inputActions;
 		public Vector2 MoveInput { get; private set; }
@@ -16,11 +16,14 @@ namespace Gameplay.Input
 		public event Action OnGrabOrDropPressed;
 		public event Action OnThrowPressed;
 		public event Action OnDeleteItemPressed;
+		public event Action OnTogglePlayerListPressed;
 
 		public PlayerInputService()
 		{
 			_inputActions = new GameInputActions();
 			_inputActions.Player.SetCallbacks(this);
+			_inputActions.UI.SetCallbacks(this);
+			_inputActions.UI.Enable();
 		}
 
 		public void EnableGameplayInput()
@@ -72,12 +75,19 @@ namespace Gameplay.Input
 		{
 			if (context.performed) OnDeleteItemPressed?.Invoke();
 		}
-
+		public void OnTogglePlayerList(InputAction.CallbackContext context)
+		{
+			if(context.performed) OnTogglePlayerListPressed?.Invoke();
+		}
 		public void Dispose()
 		{
 			_inputActions.Player.SetCallbacks(null);
+			_inputActions.UI.SetCallbacks(null);
+			_inputActions.UI.Disable();
 			DisableGameplayInput();
 			_inputActions.Dispose();
 		}
+
+	
 	}
 }

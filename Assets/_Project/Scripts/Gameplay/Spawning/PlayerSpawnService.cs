@@ -15,7 +15,7 @@ namespace Gameplay.Spawning
         private readonly string _gameplaySceneName;
 
         private readonly HashSet<ulong> _spawnedClients = new();
-        private int _nextSpawnIndex;
+        private readonly NetworkVariable<ushort> _nextSpawnIndex=new();
 
         public PlayerSpawnService(NetworkManager networkManager, NetworkObject playerPrefab
             , Transform[] spawnPoints, string gameplaySceneName)
@@ -53,16 +53,16 @@ namespace Gameplay.Spawning
         {
             if (_spawnedClients == null || _spawnPoints.Length == 0)
             {
-                position=new Vector3(_nextSpawnIndex*2f,1f,0f);
+                position=new Vector3(_nextSpawnIndex.Value*2f,1f,0f);
                 rotation = Quaternion.identity;
             }
             else
             {
-                Transform point=_spawnPoints[_nextSpawnIndex%_spawnPoints.Length];
+                Transform point=_spawnPoints[_nextSpawnIndex.Value%_spawnPoints.Length];
                 position=point.position;
                 rotation=point.rotation;
             }
-            _nextSpawnIndex++;
+            _nextSpawnIndex.Value++;
         }
         private void HandleClientDisconnected(ulong clientId)
         {

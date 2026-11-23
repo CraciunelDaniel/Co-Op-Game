@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Core;
 using Gameplay.Items;
-using Scripts.Core;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;

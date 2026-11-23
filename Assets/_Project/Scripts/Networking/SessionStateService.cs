@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Scripts.Core;
+using Core;
 using Unity.Netcode;
-using Unity.Networking.Transport;
-using UnityEngine;
 
-namespace Scripts.Networking
+namespace Networking
 {
 	public class SessionStateService : ISessionStateService, IDisposable
 	{
@@ -44,6 +42,10 @@ namespace Scripts.Networking
 			_activeState.ServerStartGame();
 		}
 
+		public void KickPlayer(ulong clientId)
+		{
+			_activeState?.ServerKickPlayer(clientId);
+		}
 		private void HandleServerStarted()
 		{
 			var instance = UnityEngine.Object.Instantiate(_sessionStatePrefab);

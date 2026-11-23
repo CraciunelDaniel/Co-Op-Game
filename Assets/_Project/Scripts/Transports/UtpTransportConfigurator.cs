@@ -1,9 +1,8 @@
-using Scripts.Core;
+using Core;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using UnityEngine;
 
-namespace Scripts.Transports
+namespace Transports
 {
 	public class UtpTransportConfigurator : ITransportConfigurator
 	{

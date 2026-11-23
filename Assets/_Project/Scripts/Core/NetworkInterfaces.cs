@@ -1,6 +1,6 @@
 using System;
 
-namespace Scripts.Core
+namespace Core
 {
    public interface IPlayerIdentityProvider
    {
@@ -17,6 +17,7 @@ namespace Scripts.Core
    {
       bool IsHost { get; }
       bool IsConnected {get;}
+      string LastDisconnectReason {get;}
       
       event Action OnConnected;
       event Action<string> OnDisconnected;

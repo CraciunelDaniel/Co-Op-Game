@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Scripts.Core;
+using Core;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Scripts.Networking
+namespace Networking
 {
 	public class NetworkSessionState : NetworkBehaviour
 	{
@@ -16,7 +16,9 @@ namespace Scripts.Networking
 
 		private readonly HashSet<ulong> _pendingSceneLoadClients = new();
 		private bool _isWaitingForSceneLoad;
-
+		private const float PING_UPDATE_INTERVAL = 1f;
+		private float _pingTimer;
+		
 		private ConnectionApprovalHandler _approvalHandler;
 		private SessionConfig _config;
 		
@@ -29,6 +31,17 @@ namespace Scripts.Networking
 		{
 			_approvalHandler = approvalHandler;
 			_config = config;
+		}
+
+		private void Update()
+		{
+			if(!IsServer||!IsSpawned)return;
+			
+			_pingTimer += Time.unscaledDeltaTime;
+			if(_pingTimer<PING_UPDATE_INTERVAL)return;
+			_pingTimer = 0;
+
+			UpdateClientsPing();
 		}
 
 		public override void OnNetworkSpawn()
@@ -76,7 +89,7 @@ namespace Scripts.Networking
 			var result = new List<LobbyPlayerInfo>(_players.Count);
 			foreach (var p in _players)
 			{
-				result.Add(new LobbyPlayerInfo(p.ClientId,p.Name.ToString(),p.ClientId==NetworkManager.ServerClientId));
+				result.Add(new LobbyPlayerInfo(p.ClientId,p.Name.ToString(),p.ClientId==NetworkManager.ServerClientId,p.PingMs));
 			}
 			return result;
 		}
@@ -98,6 +111,12 @@ namespace Scripts.Networking
 			NetworkManager.SceneManager.LoadScene(_config.GameplaySceneName, LoadSceneMode.Single);
 		}
 
+		public void ServerKickPlayer(ulong clientId)
+		{
+			if(!IsServer|| clientId==NetworkManager.ServerClientId) return;
+			
+			NetworkManager.DisconnectClient(clientId,"You were kicked by the host.");
+		}
 		private void HandleClientConnected(ulong clientId)
 		{
 			if (_approvalHandler.ConnectedPlayers.TryGetValue(clientId, out var info))
@@ -163,6 +182,25 @@ namespace Scripts.Networking
 		private void SetLoadingScreenToggledRpc(bool visible)
 		{
 			OnLoadingScreenToggled?.Invoke(visible);
+		}
+
+		private void UpdateClientsPing()
+		{
+			var transport = NetworkManager.NetworkConfig.NetworkTransport;
+			if(transport == null)return;
+
+			for (int i = 0; i < _players.Count; i++)
+			{
+				var data= _players[i];
+				ushort rtt = data.ClientId == NetworkManager.ServerClientId
+					? (ushort) 0
+					: (ushort) Mathf.Clamp((int) transport.GetCurrentRtt(data.ClientId), 0, 9999);
+				if (data.PingMs != rtt)
+				{
+					data.PingMs = rtt;
+					_players[i] = data;
+				}
+			}
 		}
 	}
 }

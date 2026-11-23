@@ -1,19 +1,21 @@
 using System;
 using System.Collections.Generic;
 
-namespace Scripts.Core
+namespace Core
 {
 	public readonly struct LobbyPlayerInfo
 	{
 		public ulong ClientId { get; }
 		public string Name { get; }
 		public bool IsHost { get; }
+		public int PingMs { get; }
 
-		public LobbyPlayerInfo(ulong clientId, string name, bool isHost)
+		public LobbyPlayerInfo(ulong clientId, string name, bool isHost,int pingMs)
 		{
 			ClientId = clientId;
 			Name = name;
 			IsHost = isHost;
+			PingMs = pingMs;
 		}
 	}
 
@@ -26,5 +28,6 @@ namespace Scripts.Core
 		event Action<bool> OnLoadingScreenToggled;
 
 		void StartGame();
+		void KickPlayer(ulong clientId);
 	}
 }

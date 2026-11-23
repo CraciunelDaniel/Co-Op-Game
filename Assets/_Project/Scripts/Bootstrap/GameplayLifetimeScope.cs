@@ -2,7 +2,6 @@ using Core;
 using Gameplay.Input;
 using Gameplay.Items;
 using Gameplay.Spawning;
-using Scripts.Core;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;

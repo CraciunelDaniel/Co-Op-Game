@@ -1,14 +1,14 @@
 using System;
-using Scripts.Core;
-using Scripts.Networking;
-using Scripts.Transports;
+using Core;
+using Networking;
+using Transports;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VContainer;
 using VContainer.Unity;
 
-namespace Scripts.Bootstrap
+namespace Bootstrap
 {
 	public class BootstrapLifetimeScope : LifetimeScope
 	{

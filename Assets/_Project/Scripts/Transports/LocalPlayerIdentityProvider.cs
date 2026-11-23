@@ -1,8 +1,8 @@
 using System;
-using Scripts.Core;
+using Core;
 using UnityEngine;
 
-namespace Scripts.Transports
+namespace Transports
 {
 	public class LocalPlayerIdentityProvider :IPlayerIdentityProvider
 	{

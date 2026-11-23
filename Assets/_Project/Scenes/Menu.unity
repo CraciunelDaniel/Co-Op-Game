@@ -2358,7 +2358,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Bootstrap::Scripts.Bootstrap.MenuLifetimeScope
   parentReference:
-    TypeName: Scripts.Bootstrap.BootstrapLifetimeScope
+    TypeName: Bootstrap.BootstrapLifetimeScope
   autoRun: 1
   autoInjectGameObjects:
   - {fileID: 1591215541}

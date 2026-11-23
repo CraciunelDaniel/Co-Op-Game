@@ -1,8 +1,8 @@
-using Scripts.Core;
+using Core;
 using UnityEngine;
 using VContainer;
 
-namespace Scripts.UI
+namespace UI
 {
     public class LoadingScreenView : MonoBehaviour
     {

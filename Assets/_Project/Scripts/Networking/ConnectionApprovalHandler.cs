@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Scripts.Core;
+using Core;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Scripts.Networking
+namespace Networking
 {
 	public class ConnectionApprovalHandler
 	{

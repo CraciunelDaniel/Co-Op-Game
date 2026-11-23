@@ -1,10 +1,10 @@
 using System;
 using System.Text;
-using Scripts.Core;
+using Core;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Scripts.Networking
+namespace Networking
 {
 	public class NetworkSessionService:INetworkSessionService,IDisposable
 	{
@@ -12,9 +12,11 @@ namespace Scripts.Networking
 		private readonly ITransportConfigurator _transportConfigurator;
 		private readonly IPlayerIdentityProvider _identityProvider;
 		private readonly ConnectionApprovalHandler _approvalHandler;
+		private readonly SessionConfig _config;
 		
 		private bool _isConnected;
 		
+		public string LastDisconnectReason { get; private set; } 
 		public bool IsHost =>_networkManager.IsHost;
 		public bool IsConnected =>_networkManager.IsClient && _networkManager.IsConnectedClient;
 		public event Action OnConnected;
@@ -23,17 +25,22 @@ namespace Scripts.Networking
 		public NetworkSessionService(NetworkManager networkManager,
 			ITransportConfigurator transportConfigurator,
 			IPlayerIdentityProvider identityProvider,
-			ConnectionApprovalHandler approvalHandler)
+			ConnectionApprovalHandler approvalHandler,
+			SessionConfig config)
 		{
 			_networkManager = networkManager;
 			_transportConfigurator = transportConfigurator;
 			_identityProvider = identityProvider;
 			_approvalHandler = approvalHandler;
-
+			_config=config;
+			
 			_networkManager.OnClientConnectedCallback += HandleClientConnected;
+			_networkManager.OnClientDisconnectCallback += HandleClientDisconnected;
 		}
 		public void StartHost(ushort port)
 		{
+			LastDisconnectReason = string.Empty;
+			
 			PrepareConnectionPayload();
 			_transportConfigurator.ConfigureForHost(port);
 			_approvalHandler.Clear();
@@ -48,6 +55,8 @@ namespace Scripts.Networking
 		}
 		public void StartClient(string address, ushort port)
 		{
+			LastDisconnectReason = string.Empty;
+			
 			PrepareConnectionPayload();
 			_transportConfigurator.ConfigureForClient(address, port);
 			
@@ -67,6 +76,7 @@ namespace Scripts.Networking
 			{
 				_networkManager.Shutdown();
 			}
+			ReturnToMenu();
 		}
 
 		private void PrepareConnectionPayload()
@@ -105,11 +115,23 @@ namespace Scripts.Networking
 					reason= _isConnected?"Connection timed out.": "Disconnected from host.";
 				}
 				_isConnected = false;
+				LastDisconnectReason = reason;
 				OnDisconnected?.Invoke(reason);
+
+				ReturnToMenu();
 			}
 		}
 
-	
+		private void ReturnToMenu()
+		{
+			if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != _config.MenuSceneName)
+			{
+				Cursor.lockState = CursorLockMode.None;
+				Cursor.visible = true;
+				UnityEngine.SceneManagement.SceneManager.LoadScene(_config.MenuSceneName);
+			}
+		}
+
 		public void Dispose()
 		{
 			if (_networkManager != null)

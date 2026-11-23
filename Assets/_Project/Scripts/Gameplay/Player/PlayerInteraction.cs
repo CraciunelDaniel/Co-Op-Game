@@ -1,7 +1,6 @@
 ﻿using System;
 using Core;
 using Gameplay.Items;
-using Scripts.Core;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -16,13 +15,9 @@ namespace Gameplay.Player
 		private InteractionConfig _config;
 		private NetworkPhysicsItem _itemPrefab;
 
-		private NetworkVariable<NetworkObjectReference> _heldItemRef;
+		private readonly NetworkVariable<NetworkObjectReference> _heldItemRef=new();
 		private NetworkPhysicsItem _cachedHeldItem;
-
-		private void Awake()
-		{
-			_heldItemRef = new NetworkVariable<NetworkObjectReference>();
-		}
+		
 
 		public void Initialize(IPlayerInputService inputService, InteractionConfig interactionConfig, NetworkPhysicsItem itemPrefab)
 		{
@@ -46,8 +41,8 @@ namespace Gameplay.Player
 		{
 			_heldItemRef.OnValueChanged += HandleHeldItemChanged;
 			ResolveHeldItem(_heldItemRef.Value);
-		
 		}
+		
 
 		public override void OnNetworkDespawn()
 		{

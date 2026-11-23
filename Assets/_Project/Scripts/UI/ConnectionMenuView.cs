@@ -1,10 +1,10 @@
-using Scripts.Core;
+using Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace Scripts.UI
+namespace UI
 {
     public class ConnectionMenuView : MonoBehaviour
     {
@@ -42,6 +42,11 @@ namespace Scripts.UI
 
             _sessionService.OnConnected += HandleConnected;
             _sessionService.OnDisconnected += HandleDisconnected;
+
+            if (string.IsNullOrEmpty(_sessionService.LastDisconnectReason))
+            {
+                _statusText.text = _sessionService.LastDisconnectReason;
+            }
         }
 
         private void OnDestroy()
